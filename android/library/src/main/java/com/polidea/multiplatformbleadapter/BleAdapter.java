@@ -1,6 +1,7 @@
 package com.polidea.multiplatformbleadapter;
 
 import com.polidea.multiplatformbleadapter.errors.BleError;
+import com.polidea.rxandroidble.scan.ScanFilter;
 
 import java.util.List;
 
@@ -26,6 +27,13 @@ public interface BleAdapter {
 
     void startDeviceScan(
             String[] filteredUUIDs,
+            int scanMode,
+            int callbackType,
+            OnEventCallback<ScanResult> onEventCallback,
+            OnErrorCallback onErrorCallback);
+
+    void startDeviceScan(
+            ScanFilter[] filters,
             int scanMode,
             int callbackType,
             OnEventCallback<ScanResult> onEventCallback,

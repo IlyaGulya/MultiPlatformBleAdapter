@@ -1,5 +1,7 @@
 package com.polidea.multiplatformbleadapter;
 
+import static com.polidea.multiplatformbleadapter.utils.Constants.BluetoothState;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -54,8 +56,6 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-
-import static com.polidea.multiplatformbleadapter.utils.Constants.BluetoothState;
 
 public class BleModule implements BleAdapter {
 
@@ -190,7 +190,22 @@ public class BleModule implements BleAdapter {
             }
         }
 
-        safeStartDeviceScan(uuids, scanMode, callbackType, onEventCallback, onErrorCallback);
+        int length = uuids == null ? 0 : uuids.length;
+        ScanFilter[] filters = new ScanFilter[length];
+        for (int i = 0; i < length; i++) {
+            filters[i] = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(uuids[i].toString())).build();
+        }
+
+        safeStartDeviceScan(filters, scanMode, callbackType, onEventCallback, onErrorCallback);
+    }
+
+    @Override
+    public void startDeviceScan(ScanFilter[] filters,
+                                int scanMode,
+                                int callbackType,
+                                OnEventCallback<ScanResult> onEventCallback,
+                                OnErrorCallback onErrorCallback) {
+        safeStartDeviceScan(filters, scanMode, callbackType, onEventCallback, onErrorCallback);
     }
 
     @Override
@@ -1217,7 +1232,7 @@ public class BleModule implements BleAdapter {
         }
     }
 
-    private void safeStartDeviceScan(final UUID[] uuids,
+    private void safeStartDeviceScan(final ScanFilter[] filters,
                                      final int scanMode,
                                      int callbackType,
                                      final OnEventCallback<ScanResult> onEventCallback,
@@ -1231,12 +1246,6 @@ public class BleModule implements BleAdapter {
                 .setScanMode(scanMode)
                 .setCallbackType(callbackType)
                 .build();
-
-        int length = uuids == null ? 0 : uuids.length;
-        ScanFilter[] filters = new ScanFilter[length];
-        for (int i = 0; i < length; i++) {
-            filters[i] = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(uuids[i].toString())).build();
-        }
 
         scanSubscription = rxBleClient
                 .scanBleDevices(scanSettings, filters)
